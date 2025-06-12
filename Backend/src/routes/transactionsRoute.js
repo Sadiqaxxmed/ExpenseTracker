@@ -1,39 +1,9 @@
 import express from "express";
-import dotenv from "dotenv";
-import { sql } from "./config/db.js";
-import rateLimiter from "./middleware/rateLimiter.js";
+import { sql } from "../config/db.js";
 
-dotenv.config();
+const router = express.Router();
 
-const app = express();
-
-app.use(rateLimiter);
-app.use(express.json());
-
-const PORT = process.env.PORT || 5001;
-
-async function initDB() {
-    try {
-        await sql`CREATE TABlE IF NOT EXISTS transactions(
-            id SERIAL PRIMARY KEY,
-            user_id VARCHAR(255) NOT NULL,
-            title VARCHAR(255) NOT NULL,
-            amount DECIMAL(10,2) NOT NULL,
-            category VARCHAR(255) NOT NULL,
-            created_at DATE NOT NULL DEFAULT CURRENT_DATE
-
-
-            
-    )`;
-
-    console.log("Database initialized successfully");
-    } catch (error) {
-        console.log("Error intializing DB", error);
-        process.exit(1); // status code 1 means failure, 0 success 
-    }
-}
-
-app.get("/api/transactions/:userId", async (req, res) => {
+router.get("/:userId", async (req, res) => {
     try {
         const { userId } = req.params;
 
@@ -48,7 +18,7 @@ app.get("/api/transactions/:userId", async (req, res) => {
     }
 });
 
-app.post("/api/transactions", async (req, res) => {
+router.post("/", async (req, res) => {
 
     try {
         const {title, amount, category, user_id} = req.body;
@@ -71,7 +41,7 @@ app.post("/api/transactions", async (req, res) => {
     
 });
 
-app.delete("/api/transactions/:id", async (req, res) => {
+router.delete("/:id", async (req, res) => {
     try {
         const {id} = req.params;
 
@@ -94,7 +64,7 @@ app.delete("/api/transactions/:id", async (req, res) => {
     }
 });
 
-app.get("/api/transactions/summary/:userId", async (req, res) => {
+router.get("/summary/:userId", async (req, res) => {
     try {
         const {userId} = req.params;
 
@@ -124,8 +94,4 @@ app.get("/api/transactions/summary/:userId", async (req, res) => {
     }
 });
 
-initDB().then(() => {
-    app.listen(PORT, () => {
-    console.log("Server is up and running on PORT:", PORT);
-    });
-});
+export default router;
